@@ -1,0 +1,2 @@
+      // float x = 1*direction.x*Time.deltaTime;
+        // float y = 1*direction.y*Time.deltaTime;
