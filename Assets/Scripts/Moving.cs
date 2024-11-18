@@ -2,19 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(BoxCollider2D))]
+
 public class Snake : MonoBehaviour
 {
-   
-    public Transform segmentPrefab;
-    public Vector2Int direction = Vector2Int.right;
-    public float speed = 20f;
-    public float speedMultiplier = 1f;
-    public int initialSize = 0;
-    
-    private readonly List<Transform> segments = new List<Transform>();
+
+    //direction
+    public Vector2Int direction = Vector2Int.right;// (1,0)
     private Vector2Int input;
-    private float nextUpdate;
+
+    //reference
+    public GameObject fruit;
+
+    //grow
+    public int initialSize = 0;
+    private readonly List<Transform> segments = new List<Transform>();// 1 cái list kiểu transform
+    public Transform segmentPrefab;
+
+    //moving
+    private float nextUpdate;//thời gian của lần move tiếp theo
+    public float speed = 2f;
+    //public float speedMultiplier = 1f;
     
 
     private void Start()
@@ -26,7 +33,7 @@ public class Snake : MonoBehaviour
     private void Update()
     {
         // Only allow turning up or down while moving in the x-axis
-        if (direction.x != 0f)
+        if (direction.x != 0f)//moving in the x-axis
         {
             if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) {
                 input = Vector2Int.up;
@@ -47,7 +54,7 @@ public class Snake : MonoBehaviour
 
     private void FixedUpdate()
     {   
-        if(this.GetComponent<Crash>().die==false){//chưa chết mới dc di chuyển, chết r k move đc nữa
+        if(this.GetComponent<Crash>().die==false && fruit.GetComponent<FruitTrigger>().fruitOut==false){//chỉ đc move khi chưa chết và chưa thắng
         // Wait until the next update before proceeding
         if (Time.time < nextUpdate) {
             return;
@@ -63,17 +70,17 @@ public class Snake : MonoBehaviour
         // position, otherwise they will all be stacked on top of each other.
         for (int i = segments.Count - 1; i > 0; i--) {
             segments[i].position = segments[i - 1].position;
+            FindObjectOfType<FruitTrigger>().snakeGrow=false;
         }
 
 
         // Move the snake in the direction it is facing
-        // Round the values to ensure it aligns to the grid
-        int x = Mathf.RoundToInt(transform.position.x) + direction.x;
-        int y = Mathf.RoundToInt(transform.position.y) + direction.y;
+        float x = transform.position.x + direction.x*0.5f;//cơ chế đi là lấy vector position+ vector hướng 
+        float y = transform.position.y + direction.y*0.5f;
         transform.position = new Vector2(x, y);
 
         // Set the next update time based on the speed
-        nextUpdate = Time.time + (1f / (speed * speedMultiplier));
+        nextUpdate = Time.time + (1f / speed);// thời gian thực của game (sec)+ thời gian giữa 2 lần move
         RotateHead();
         }
     }
@@ -121,18 +128,18 @@ public class Snake : MonoBehaviour
         }
     }
 
-    public bool Occupies(int x, int y)
-    {
-        foreach (Transform segment in segments)
-        {
-            if (Mathf.RoundToInt(segment.position.x) == x &&
-                Mathf.RoundToInt(segment.position.y) == y) {
-                return true;
-            }
-        }
+    // public bool Occupies(int x, int y)
+    // {
+    //     foreach (Transform segment in segments)
+    //     {
+    //         if (Mathf.RoundToInt(segment.position.x) == x &&
+    //             Mathf.RoundToInt(segment.position.y) == y) {
+    //             return true;
+    //         }
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
